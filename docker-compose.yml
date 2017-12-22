@@ -1,0 +1,101 @@
+version: "2"
+
+services:
+  data:
+    image: busybox
+    volumes:
+      - ./Laravel:/var/www/html
+      - /var/lib/mysql
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    links:
+      - fpm
+    volumes_from:
+      - data
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: my_user_name
+      MYSQL_PASSWORD: my_password
+      MYSQL_DATABASE: my_database
+    volumes_from:
+      - data
+
+  redis:
+    image: redis
+
+  fpm:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes_from:
+      - data
+    links:
+      - mysql
+      - redis
+    expose:
+      - 9000
+    command: php-fpm
+
+  websockets:
+    build:
+      context: .
+      dockerfile: docker/websockets/Dockerfile
+    depends_on:
+      - redis
+    links:
+      - redis
+      - nginx
+    command: laravel-echo-server start
+    volumes:
+      - ./docker/websockets/config:/app
+    ports:
+      - 6001:6001
+
+  artisan:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes_from:
+      - data
+    links:
+      - mysql
+      - redis
+    entrypoint:
+      - php
+      - artisan
+
+  composer:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    entrypoint: composer
+    volumes:
+      - ./docker/php/disable-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    volumes_from:
+      - data
+    links:
+      - mysql
+
+  queue.default:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    restart: on-failure
+    volumes_from:
+      - data
+    links:
+      - mysql
+      - redis
+    depends_on:
+      - redis
+      - mysql
+    entrypoint:
+      - php
+      - artisan
+    command: queue:work --tries=3 --queue=default

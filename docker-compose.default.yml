@@ -1,0 +1,14 @@
+version: "2"
+
+services:
+  nginx:
+    ports:
+      - "80:80"
+
+  mysql:
+    ports:
+      - "3306:3306"
+
+  redis:
+    ports:
+      - "6379:6379"
