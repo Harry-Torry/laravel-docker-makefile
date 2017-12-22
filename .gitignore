@@ -1,0 +1,4 @@
+.idea/
+Laravel/.env
+Laravel/vendor
+.DS_Store

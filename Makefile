@@ -43,5 +43,5 @@ staging:
 
 rebuild:
 	$(MAKE) clean
-	docker rmi -f laravel-docker-makefile artisan laravel-docker-makefile composer laravel-docker-makefile fpm laravel-docker-makefile nginx laravel-docker-makefile websockets laravel-docker-makefile queue.default 
+	docker rmi -f laravel-docker-makefile artisan laravel-docker-makefile composer laravel-docker-makefile fpm laravel-docker-makefile nginx laravel-docker-makefile websockets laravel-docker-makefile queue.default
 	$(MAKE) up
